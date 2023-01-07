@@ -4,6 +4,7 @@ const express = require('express');
 const app = express();
 const router = express.Router();
 const nodemailer = require('nodemailer');
+const morgan = require('morgan');
 const { google } = require('googleapis');
 const OAuth2 = google.auth.OAuth2;
 
@@ -54,6 +55,16 @@ const get_html_message = (client, content) => {
 
 // app.use(cors());
 app.use(express.json());
+app.use(morgan('dev'));
+// body logger
+app.use((req, res, next) => {
+  if (req.method !== 'GET') {
+    console.log('Body Logger Start');
+    console.log(req.body);
+    console.log('Body Logger End');
+  }
+  next();
+});
 app.post('/danielforkner', (req, res) => {
   const { name, email, message } = req.body;
   try {
