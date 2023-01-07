@@ -14,34 +14,68 @@ const OAuth2_client = new OAuth2(
 );
 OAuth2_client.setCredentials({ refresh_token: process.env.REFRESH_TOKEN });
 
-const sendMail = (client_name, content) => {
-  const accessTOken = OAuth2_client.getAccessToken();
-  const transport = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      type: 'OAuth2',
-      user: process.env.EMAIL,
-      clientId: process.env.CLIENT_ID,
-      clientSecret: process.env.CLIENT_SECRET,
-      refreshToken: process.env.REFRESH_TOKEN,
-      accessToken: accessTOken,
-    },
+const getAccessToken = async () => {
+  return new Promise((resolve, reject) => {
+    OAuth2_client.getAccessToken((err, token) => {
+      if (err) {
+        console.log(err);
+        reject(err);
+      } else {
+        console.log('got the token');
+        resolve(token);
+      }
+    });
   });
+};
 
-  const mailOptions = {
-    from: process.env.EMAIL,
-    to: process.env.PERSONAL_EMAIL,
-    subjct: `Message from ${client_name}`,
-    html: get_html_message(client_name, content),
-  };
+const sendMail = async (client_name, content) => {
+  const accessToken = await getAccessToken();
 
-  transport.sendMail(mailOptions, (error, result) => {
-    if (error) {
-      throw error;
-    } else {
-      console.log('Email sent: ' + result.response);
-    }
-    transport.close();
+  if (!accessToken) {
+    console.log('No access token');
+    return;
+  }
+
+  let mailSentResponse = await asyncSendMail(client_name, content, accessToken);
+  console.log('email sent, mailSentResponse: ', mailSentResponse);
+};
+
+const asyncSendMail = async (client_name, content, accessToken) => {
+  return new Promise((resolve, reject) => {
+    const transport = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        type: 'OAuth2',
+        user: process.env.EMAIL,
+        clientId: process.env.CLIENT_ID,
+        clientSecret: process.env.CLIENT_SECRET,
+        refreshToken: process.env.REFRESH_TOKEN,
+        accessToken: accessToken,
+      },
+      tls: {
+        rejectUnauthorized: false,
+      },
+    });
+
+    const mailOptions = {
+      from: process.env.EMAIL,
+      to: process.env.PERSONAL_EMAIL,
+      subjct: `Message from ${client_name}`,
+      html: get_html_message(client_name, content),
+    };
+
+    const mailSentResponse = transport.sendMail(
+      mailOptions,
+      (error, result) => {
+        if (error) {
+          console.error('error sending mail: ', error);
+          reject(false);
+        } else {
+          transport.close();
+          resolve(result.response);
+        }
+      }
+    );
   });
 };
 
@@ -65,10 +99,14 @@ app.use((req, res, next) => {
   }
   next();
 });
-app.post('/danielforkner', (req, res) => {
+app.post('/danielforkner', async (req, res) => {
   const { name, email, message } = req.body;
   try {
-    sendMail('danielforkner personalsite', { name, email, message });
+    let mailSentResponse = await sendMail('danielforkner personalsite', {
+      name,
+      email,
+      message,
+    });
     res.send('Message sent successfully');
   } catch (error) {
     console.error(error);
