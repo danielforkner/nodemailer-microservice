@@ -30,10 +30,11 @@ const getAccessToken = async () => {
 
 const sendMail = async (client_name, content) => {
   const accessToken = await getAccessToken();
+  console.log('accessToken: ', accessToken);
 
   if (!accessToken) {
     console.log('No access token');
-    return;
+    throw new Error('No access token');
   }
 
   let mailSentResponse = await asyncSendMail(client_name, content, accessToken);
@@ -107,6 +108,7 @@ app.post('/danielforkner', async (req, res) => {
       email,
       message,
     });
+    console.log('mailSentResponse: ', mailSentResponse);
     res.send('Message sent successfully');
   } catch (error) {
     console.error(error);
