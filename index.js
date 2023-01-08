@@ -42,6 +42,7 @@ const sendMail = async (client_name, content) => {
 };
 
 const asyncSendMail = async (client_name, content) => {
+  console.log(process.env);
   return new Promise((resolve, reject) => {
     const transport = nodemailer.createTransport({
       host: 'smtp.gmail.com',
