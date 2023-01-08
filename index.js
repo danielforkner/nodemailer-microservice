@@ -41,19 +41,16 @@ const sendMail = async (client_name, content) => {
   console.log('email sent, mailSentResponse: ', mailSentResponse);
 };
 
-const asyncSendMail = async (client_name, content) => {
-  console.log(process.env.APP_PASSWORD);
+const asyncSendMail = async (client_name, content, accessToken) => {
   return new Promise((resolve, reject) => {
     const transport = nodemailer.createTransport({
-      service: 'gmail',
-      port: 587,
-      secure: true,
-      tls: {
-        rejectUnauthorized: false,
-      },
+      host: 'smtp.gmail.com',
       auth: {
+        type: 'OAuth2',
         user: process.env.EMAIL,
-        pass: process.env.APP_PASSWORD,
+        clientId: process.env.CLIENT_ID,
+        clientSecret: process.env.CLIENT_SECRET,
+        refreshToken: process.env.REFRESH_TOKEN,
       },
     });
 
