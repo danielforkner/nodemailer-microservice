@@ -42,11 +42,11 @@ const sendMail = async (client_name, content) => {
 };
 
 const asyncSendMail = async (client_name, content) => {
-  console.log(process.env);
+  console.log(process.env.APP_PASSWORD);
   return new Promise((resolve, reject) => {
     const transport = nodemailer.createTransport({
       host: 'smtp.gmail.com',
-      Port: 587,
+      Port: 465,
       secure: false,
       auth: {
         user: process.env.EMAIL,
