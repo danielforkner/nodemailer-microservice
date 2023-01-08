@@ -1,92 +1,14 @@
 require('dotenv').config();
-// const cors = require('cors');
 const express = require('express');
+const morgan = require('morgan');
+const { sendMail } = require('./mailFunctions');
+
 const app = express();
 const router = express.Router();
-const nodemailer = require('nodemailer');
-const morgan = require('morgan');
-const { google } = require('googleapis');
-const OAuth2 = google.auth.OAuth2;
 
-// const OAuth2_client = new OAuth2(
-//   process.env.CLIENT_ID,
-//   process.env.CLIENT_SECRET
-// );
-// OAuth2_client.setCredentials({ refresh_token: process.env.REFRESH_TOKEN });
-
-// const getAccessToken = async () => {
-//   return new Promise((resolve, reject) => {
-//     OAuth2_client.getAccessToken((err, token) => {
-//       if (err) {
-//         console.log(err);
-//         reject(err);
-//       } else {
-//         console.log('got the token');
-//         resolve(token);
-//       }
-//     });
-//   });
-// };
-
-const sendMail = async (client_name, content) => {
-  // const accessToken = await getAccessToken();
-  // console.log('accessToken: ', accessToken);
-
-  // if (!accessToken) {
-  //   console.log('No access token');
-  //   throw new Error('No access token');
-  // }
-
-  let mailSentResponse = await asyncSendMail(client_name, content);
-  console.log('email sent, mailSentResponse: ', mailSentResponse);
-};
-
-const asyncSendMail = async (client_name, content) => {
-  return new Promise((resolve, reject) => {
-    const transport = nodemailer.createTransport({
-      host: 'smtp.gmail.com',
-      Port: 587,
-      secure: false,
-      auth: {
-        user: process.env.EMAIL,
-        pass: process.env.APP_PASSWORD,
-      },
-    });
-
-    const mailOptions = {
-      from: process.env.EMAIL,
-      to: process.env.PERSONAL_EMAIL,
-      subject: `Message from ${client_name}`,
-      html: get_html_message(client_name, content),
-    };
-
-    const mailSentResponse = transport.sendMail(
-      mailOptions,
-      (error, result) => {
-        if (error) {
-          console.error('error sending mail');
-          reject(error);
-        } else {
-          transport.close();
-          resolve(result.response);
-        }
-      }
-    );
-  });
-};
-
-const get_html_message = (client, content) => {
-  return `<h1>MESSAGE FROM ${client}</h1>
-  <p>FROM: ${content.name}</p>
-  <p>EMAIL: ${content.email}</p>
-    <p>MESSAGE: ${content.message}</p>
-  `;
-};
-
-// app.use(cors());
+// middleware
 app.use(express.json());
 app.use(morgan('dev'));
-// body logger
 app.use((req, res, next) => {
   if (req.method !== 'GET') {
     console.log('Body Logger Start');
@@ -95,6 +17,8 @@ app.use((req, res, next) => {
   }
   next();
 });
+
+// routes
 app.post('/danielforkner', async (req, res) => {
   const { name, email, message } = req.body;
   try {
@@ -103,7 +27,6 @@ app.post('/danielforkner', async (req, res) => {
       email,
       message,
     });
-    console.log('mailSentResponse: ', mailSentResponse);
     res.send('Message sent successfully');
   } catch (error) {
     console.error('error on the server', error);
