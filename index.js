@@ -45,9 +45,12 @@ const asyncSendMail = async (client_name, content) => {
   console.log(process.env.APP_PASSWORD);
   return new Promise((resolve, reject) => {
     const transport = nodemailer.createTransport({
-      host: 'smtp.gmail.com',
-      Port: 465,
+      service: 'gmail',
+      port: 587,
       secure: false,
+      tls: {
+        rejectUnauthorized: false,
+      },
       auth: {
         user: process.env.EMAIL,
         pass: process.env.APP_PASSWORD,
