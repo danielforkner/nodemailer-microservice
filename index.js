@@ -57,7 +57,7 @@ const asyncSendMail = async (client_name, content) => {
     const mailOptions = {
       from: process.env.EMAIL,
       to: process.env.PERSONAL_EMAIL,
-      subjct: `Message from ${client_name}`,
+      subject: `Message from ${client_name}`,
       html: get_html_message(client_name, content),
     };
 
