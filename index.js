@@ -8,53 +8,48 @@ const morgan = require('morgan');
 const { google } = require('googleapis');
 const OAuth2 = google.auth.OAuth2;
 
-const OAuth2_client = new OAuth2(
-  process.env.CLIENT_ID,
-  process.env.CLIENT_SECRET
-);
-OAuth2_client.setCredentials({ refresh_token: process.env.REFRESH_TOKEN });
+// const OAuth2_client = new OAuth2(
+//   process.env.CLIENT_ID,
+//   process.env.CLIENT_SECRET
+// );
+// OAuth2_client.setCredentials({ refresh_token: process.env.REFRESH_TOKEN });
 
-const getAccessToken = async () => {
-  return new Promise((resolve, reject) => {
-    OAuth2_client.getAccessToken((err, token) => {
-      if (err) {
-        console.log(err);
-        reject(err);
-      } else {
-        console.log('got the token');
-        resolve(token);
-      }
-    });
-  });
-};
+// const getAccessToken = async () => {
+//   return new Promise((resolve, reject) => {
+//     OAuth2_client.getAccessToken((err, token) => {
+//       if (err) {
+//         console.log(err);
+//         reject(err);
+//       } else {
+//         console.log('got the token');
+//         resolve(token);
+//       }
+//     });
+//   });
+// };
 
 const sendMail = async (client_name, content) => {
-  const accessToken = await getAccessToken();
-  console.log('accessToken: ', accessToken);
+  // const accessToken = await getAccessToken();
+  // console.log('accessToken: ', accessToken);
 
-  if (!accessToken) {
-    console.log('No access token');
-    throw new Error('No access token');
-  }
+  // if (!accessToken) {
+  //   console.log('No access token');
+  //   throw new Error('No access token');
+  // }
 
-  let mailSentResponse = await asyncSendMail(client_name, content, accessToken);
+  let mailSentResponse = await asyncSendMail(client_name, content);
   console.log('email sent, mailSentResponse: ', mailSentResponse);
 };
 
-const asyncSendMail = async (client_name, content, accessToken) => {
+const asyncSendMail = async (client_name, content) => {
   return new Promise((resolve, reject) => {
     const transport = nodemailer.createTransport({
-      service: 'gmail',
+      host: 'smtp.gmail.com',
+      Port: 587,
+      secure: false,
       auth: {
-        type: 'OAuth2',
         user: process.env.EMAIL,
-        clientId: process.env.CLIENT_ID,
-        clientSecret: process.env.CLIENT_SECRET,
-        refreshToken: process.env.REFRESH_TOKEN,
-        accessToken: accessToken,
-      },
-      tls: {
-        rejectUnauthorized: false,
+        pass: process.env.APP_PASSWORD,
       },
     });
 
@@ -69,8 +64,8 @@ const asyncSendMail = async (client_name, content, accessToken) => {
       mailOptions,
       (error, result) => {
         if (error) {
-          console.error('error sending mail: ', error);
-          reject(false);
+          console.error('error sending mail');
+          reject(error);
         } else {
           transport.close();
           resolve(result.response);
@@ -111,7 +106,7 @@ app.post('/danielforkner', async (req, res) => {
     console.log('mailSentResponse: ', mailSentResponse);
     res.send('Message sent successfully');
   } catch (error) {
-    console.error(error);
+    console.error('error on the server', error);
     res.status(500);
     res.send('Failed to deliver message');
   }
