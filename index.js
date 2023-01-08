@@ -47,7 +47,7 @@ const asyncSendMail = async (client_name, content) => {
     const transport = nodemailer.createTransport({
       service: 'gmail',
       port: 587,
-      secure: false,
+      secure: true,
       tls: {
         rejectUnauthorized: false,
       },
