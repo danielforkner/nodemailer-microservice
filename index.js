@@ -1,4 +1,5 @@
 require('dotenv').config();
+const cors = require('cors');
 const express = require('express');
 const morgan = require('morgan');
 const { sendMail } = require('./mailFunctions');
@@ -7,6 +8,7 @@ const app = express();
 const router = express.Router();
 
 // middleware
+app.use(cors());
 app.use(express.json());
 app.use(morgan('dev'));
 app.use((req, res, next) => {
