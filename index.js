@@ -33,7 +33,7 @@ app.post('/danielforkner', async (req, res) => {
   } catch (error) {
     console.error('error on the server', error);
     res.status(500);
-    res.send({ message: 'Failed to deliver message' });
+    res.send({ error: true, message: 'Failed to deliver message' });
   }
 });
 
